@@ -14,6 +14,8 @@ import re
 import shutil
 import subprocess
 import sys
+import urllib.request
+import urllib.error
 from datetime import datetime
 from pathlib import Path
 
@@ -28,6 +30,8 @@ RESET = "\033[0m"
 TEMPLATE_DIR = Path(__file__).resolve().parent
 WORKFLOWS_SRC = TEMPLATE_DIR / "workflows"
 TEMPLATES_DIR = TEMPLATE_DIR / "templates"
+
+GITHUB_RAW_BASE = "https://raw.githubusercontent.com/vishaludemy37/dev-autopilot-templates/main"
 
 WORKFLOW_SCRIPTS = [
     "standup.py", "requirements.py", "work.py", "report.py",
@@ -70,6 +74,25 @@ def banner():
     p("    - Guided EC2 deployment")
     p("    - FRD generation & test case management")
     p("")
+
+
+def fetch_remote_file(relative_path):
+    """Fetch a file from the GitHub repo. Returns content string or None."""
+    url = f"{GITHUB_RAW_BASE}/{relative_path}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "dev-autopilot-setup"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return resp.read().decode("utf-8")
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError) as e:
+        p(f"  [WARN] Failed to fetch {relative_path}: {e}", YELLOW)
+        return None
+
+
+def read_file_or_fetch(local_path, remote_relative_path):
+    """Read from local path if it exists, otherwise fetch from GitHub."""
+    if local_path and Path(local_path).exists():
+        return Path(local_path).read_text(encoding="utf-8")
+    return fetch_remote_file(remote_relative_path)
 
 
 def collect_info():
@@ -154,15 +177,15 @@ def copy_workflow_scripts(target_dir, info):
         src = WORKFLOWS_SRC / script
         dst = workflows_target / script
 
-        if not src.exists():
-            p(f"  [WARN] Source not found: {src}", YELLOW)
-            continue
-
         if dst.exists():
             p(f"  [SKIP] Already exists: workflows/{script}", YELLOW)
             continue
 
-        content = src.read_text(encoding="utf-8")
+        content = read_file_or_fetch(src, f"workflows/{script}")
+        if content is None:
+            p(f"  [WARN] Could not get: workflows/{script}", YELLOW)
+            continue
+
         content = replace_placeholders(content, info)
         dst.write_text(content, encoding="utf-8")
         copied += 1
@@ -180,11 +203,11 @@ def generate_claude_md(target_dir, info):
         p("  [SKIP] CLAUDE.md already exists", YELLOW)
         return False
 
-    if not template_path.exists():
-        p("  [WARN] CLAUDE.md.template not found", YELLOW)
+    content = read_file_or_fetch(template_path, "templates/CLAUDE.md.template")
+    if content is None:
+        p("  [WARN] Could not get CLAUDE.md.template", YELLOW)
         return False
 
-    content = template_path.read_text(encoding="utf-8")
     content = replace_placeholders(content, info)
     output_path.write_text(content, encoding="utf-8")
     p("  [OK] Generated CLAUDE.md", GREEN)
@@ -202,11 +225,11 @@ def generate_knowledge(target_dir, info):
         p(f"  [SKIP] Knowledge file already exists", YELLOW)
         return False
 
-    if not template_path.exists():
-        p("  [WARN] knowledge.md.template not found", YELLOW)
+    content = read_file_or_fetch(template_path, "templates/knowledge.md.template")
+    if content is None:
+        p("  [WARN] Could not get knowledge.md.template", YELLOW)
         return False
 
-    content = template_path.read_text(encoding="utf-8")
     content = replace_placeholders(content, info)
     output_path.write_text(content, encoding="utf-8")
     p(f"  [OK] Generated knowledge/{info['project_name']}-project.md", GREEN)
