@@ -159,6 +159,8 @@ def get_computed_status(tasks):
 
 
 def update_task_status(file_path, task_num, old_status, new_status):
+    if not file_path or not Path(file_path).exists():
+        return False
     content = Path(file_path).read_text(encoding="utf-8")
     pattern = rf"(?s)(### Task {task_num}:.*?\*\*Status\*\*\s*\|\s*){re.escape(old_status)}"
     updated = re.sub(pattern, rf"\g<1>{new_status}", content)
@@ -169,6 +171,8 @@ def update_task_status(file_path, task_num, old_status, new_status):
 
 
 def update_req_status(req_id, new_status, file_path):
+    if not file_path or not Path(file_path).exists():
+        return
     content = Path(file_path).read_text(encoding="utf-8")
     pattern = rf"(?s)(### {re.escape(req_id)}.*?\*\*Status\*\*\s*\|\s*)\S+"
     updated = re.sub(pattern, rf"\g<1>{new_status}", content)
