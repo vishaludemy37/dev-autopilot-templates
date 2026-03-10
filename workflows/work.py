@@ -259,15 +259,20 @@ def update_test_case_excel_status(tc_id, status, notes=""):
 
 
 def finalize_task_done(state):
-    task_file = state["task_file"]
-    task_num = state["task_num"]
-    task_title = state["task_title"]
-    task_status = state["task_status"]
+    task_file = state.get("task_file", "")
+    task_num = state.get("task_num", "")
+    task_title = state.get("task_title", "")
+    task_status = state.get("task_status", "In Progress")
     task_desc = state.get("task_description", "")
     task_files = state.get("task_files", "")
     req_id = state.get("req_id", "")
     req_file = state.get("req_file", "")
     all_issues = state.get("all_issues", [])
+
+    if not task_file or not task_num:
+        out("  [WARN] Session state incomplete — task file or number missing.")
+        out("  Skipping task status update. Run 'work on REQ-XXX' to restart.")
+        return
 
     updated = update_task_status(task_file, task_num, task_status, "Done")
     if updated:
