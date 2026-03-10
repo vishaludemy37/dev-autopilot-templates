@@ -1,0 +1,176 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+{{PROJECT_NAME}} — {{PROJECT_DESCRIPTION}}. Built with {{TECH_STACK}}.
+
+## Running the App
+
+```bash
+{{RUN_COMMANDS}}
+```
+
+## Environment Variables (.env)
+
+{{ENV_VARS_LIST}}
+
+## Architecture
+
+{{ARCHITECTURE_DESCRIPTION}}
+
+## Chat Commands — Workflow Shortcuts
+
+Users can run all workflow scripts using natural language in Claude Code chat. When you see these phrases, run the corresponding Python command:
+
+| User says | What to run |
+|---|---|
+| `run standup` / `run stand up` | `python workflows/standup.py` |
+| `show requirements` / `list requirements` | `python workflows/requirements.py --list` |
+| `trace REQ-XXX` | `python workflows/requirements.py --trace REQ-XXX` |
+| `run work` / `show work` | `python workflows/work.py --list` |
+| `work on REQ-XXX` | `python workflows/work.py --requirement REQ-XXX` |
+| `generate report` / `weekly report` | `python workflows/report.py` |
+| `run report last week` | `python workflows/report.py --week-offset -1` |
+| `show commits` / `what was committed today` | `git log --oneline --since="midnight"` |
+| `pause` | Save work session state to `workflows/.session/`, resume later with `work on REQ-XXX` |
+| `show open PRs` | `gh pr list` |
+| `commit [message]` | Stage relevant changes and commit with the given message |
+| `push` / `push to GitHub` | `git push` (confirm with user first) |
+
+### Deployment (when ready)
+
+| User says | What to run |
+|---|---|
+| `deploy to EC2` | `python workflows/deploy.py` with configured EC2 params (--ec2-host, --key-file, etc.) |
+| `check server health` | SSH health check on configured EC2 instance |
+
+### Knowledge updates (automatic)
+
+When the user mentions architectural decisions, technology choices, or design changes (e.g. "we decided to use X instead of Y", "let's switch from X to Y"), automatically update `knowledge/{{PROJECT_NAME}}-project.md` with the decision. No command needed.
+
+### Step-based interaction
+
+The standup, work, and requirements scripts use a **step-based state machine**. They output display text followed by a `[SCRIPT:step_name]` prompt line. When you see this prompt:
+
+1. Show the script output to the user
+2. Use `AskUserQuestion` to present the choices from the prompt
+3. Pass the user's answer back: `python workflows/<script>.py --step <step_name> --response "<answer>"`
+4. Repeat until the script finishes (no more `[SCRIPT:...]` prompt)
+
+Session state is stored in `workflows/.session/` (JSON files, auto-cleaned on completion).
+
+### Requirement logging (automatic)
+
+When the user describes a client requirement (e.g. "Client emailed asking for X"), auto-run `requirements.py` with `--client`, `--channel`, and `--requirement` parameters — no need for the user to type a specific command.
+
+## Auto-Update Rule
+
+At the end of every conversation, automatically update `knowledge/{{PROJECT_NAME}}-project.md` with any new requirements, decisions, architecture changes, bugs discovered, or features discussed. Do this without being asked. Also sync the copy at the Claude memory directory.
+
+### Knowledge Sync Protocol
+
+When the user says "done for today" or similar, run `python workflows/sync-knowledge.py`. The script outputs a structured report between `===KNOWLEDGE_SYNC_REPORT_START===` and `===KNOWLEDGE_SYNC_REPORT_END===` markers containing:
+- Recent commits
+- Contents of changed files (truncated to 200 lines each)
+- Current knowledge file content
+
+After receiving this output, Claude Code should:
+1. Analyze the changed files and commits
+2. Compare against the current knowledge file
+3. Update `knowledge/{{PROJECT_NAME}}-project.md` directly — only add or update sections, never remove
+4. Copy the updated file to the Claude memory directory
+5. Summarize what was updated
+
+## Requirement Logging Rule
+
+When the user describes a client requirement, feature request, or bug report using phrases like:
+- "Client wants...", "Client asked for...", "New requirement:..."
+- "Client emailed:...", "Client called about:...", "Client WhatsApp:..."
+- "Bug reported:...", "Client reported...", "Client feedback:..."
+
+Automatically run:
+```
+python workflows/requirements.py --client "[detect client name from context or ask]" --channel "[detect channel: email/call/whatsapp/chat]" --requirement "[exact requirement text]"
+```
+
+Do this without being asked. Then confirm:
+- REQ ID generated
+- Number of tasks created
+- Say: "Type 'show requirements' to see all open work or 'work on REQ-XXX' to start"
+
+## Work Session Rule
+
+When the user says "show requirements" or "what should I work on":
+- Run `python workflows/requirements.py --list` automatically
+
+When the user says "work on REQ-XXX":
+- Check if `workflows/frd/REQ-XXX-FRD.md` exists
+- If NO FRD exists, ask: "No FRD found for REQ-XXX. Generate FRD first? (y/n)"
+  - If y: run `python workflows/generate-frd.py --req-id REQ-XXX` and follow the FRD Generation Protocol
+  - If n: proceed without FRD
+- Run `python workflows/requirements.py --trace REQ-XXX` to show the requirement and its tasks
+- Then begin working on the highest-priority pending task
+
+## Completion Rule
+
+When the user says "done" during a work session (meaning a task is finished, not "done for today"):
+- The workflow script marks the task as Done and outputs structured data
+- Claude Code handles code review and test case generation natively (see Done Pipeline Protocol below)
+- Update requirement status automatically via `python workflows/requirements.py --trace REQ-XXX`
+- Create/update `workflows/READY_FOR_TESTING.md` with the completed task details for testers
+
+## Done Pipeline Protocol
+
+When you see `===DONE_PIPELINE_START===` in script output, immediately perform these steps:
+
+1. **Read files** listed under `FILES:` — read each file to understand the implementation
+2. **Code review** — check the code for:
+   - Does the implementation match the task description?
+   - Any bugs or unhandled edge cases?
+   - Error handling present where needed?
+   - Security issues (injection, XSS, path traversal, exposed secrets)?
+   - Output a short review summary
+3. **Generate test case** — if `workflows/frd/<REQ>-FRD.md` exists, read it and map test steps to FR numbers (e.g., "Acceptance Criteria Reference: FR-001"). Generate sections: Preconditions, Steps to Test (4-6 steps), Expected Result, Edge Cases (3-5 items), Acceptance Criteria Reference. If `KNOWN_ISSUES:` is present, add a "Known Issues to Verify" section
+4. **Save test case** to `workflows/testing/YYYY-MM-DD_testcases.md` (append with `---` separator if file exists)
+5. **Update Excel** — run:
+   ```
+   python workflows/update-testcases-excel.py add --req-id <REQ> --task "<TASK>" --priority <PRIORITY> --preconditions "<parsed>" --steps "<parsed>" --expected "<parsed>" --edge-cases "<parsed>"
+   ```
+6. **Update READY_FOR_TESTING.md** — append an entry with requirement, task, developer, completion time, test case path, files changed, and "Awaiting Test" status
+7. **Continue the workflow** — proceed to the next standup/work step (usually sync_knowledge)
+
+## FRD Generation Rule
+
+When the user says "generate FRD for REQ-XXX", "create FRD for REQ-XXX", or similar:
+- Run `python workflows/generate-frd.py --req-id REQ-XXX` automatically
+
+## FRD Generation Protocol
+
+When you see `===FRD_GENERATE_START===` in script output, generate a Functional Requirement Document with these sections:
+
+1. **Document Info** — REQ ID, version (1.0), date, author, status
+2. **Executive Summary** — what this feature does in 2-3 sentences
+3. **Background & Business Need** — why the client needs this
+4. **Scope** — what is included and what is out of scope
+5. **Functional Requirements** — numbered FR-001, FR-002, etc. with: Description, Input, Process, Output, Acceptance Criteria
+6. **Non-Functional Requirements** — performance, security, reliability
+7. **Technical Approach** — recommended implementation based on existing stack (use CONTEXT from markers)
+8. **Dependencies** — other modules or files affected (use TASKS from markers)
+9. **Risks & Assumptions**
+10. **Sign-off** — Client, Developer, Tester fields with blank signature lines
+
+Save outputs:
+- `workflows/frd/<REQ_ID>-FRD.md` — markdown version
+- Run `python workflows/generate-frd-docx.py --input workflows/frd/<REQ_ID>-FRD.md --output workflows/frd/<REQ_ID>-FRD.docx` to generate Word document
+- Update the requirement file to add `FRD: workflows/frd/<REQ_ID>-FRD.md` reference
+- Update requirement status to "approved"
+- Say: "FRD approved — say 'work on <REQ_ID>' to start development"
+
+## Closing Trigger
+
+When the user says "done for today" (or similar end-of-session phrases):
+1. Run `python workflows/sync-knowledge.py` to sync the knowledge file with recent code changes
+2. Summarize what was updated in the knowledge file
+3. Show a brief recap of what was accomplished in the session

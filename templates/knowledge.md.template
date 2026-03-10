@@ -1,0 +1,71 @@
+# {{PROJECT_NAME}} — Project Knowledge
+
+> This file is the single source of truth for project context. It is automatically
+> updated by `workflows/sync-knowledge.py` and read by Claude Code for context.
+> Keep it current — outdated information here leads to outdated AI assistance.
+
+---
+
+## Project Overview
+
+<!-- What does this project do? Who is it for? What problem does it solve? -->
+<!-- Example: "A Flask web app that processes Excel files for Premier Exports clients." -->
+
+- **Name**: {{PROJECT_NAME}}
+- **Description**: {{PROJECT_DESCRIPTION}}
+- **Tech Stack**: {{TECH_STACK}}
+- **Repository**: {{GITHUB_REPO}}
+- **Developer**: {{DEVELOPER_NAME}}
+- **Started**: {{DATE_CREATED}}
+
+---
+
+## Active Features
+
+<!-- List features currently implemented and working. Update as you build. -->
+<!-- Format: "- Feature name — brief description (status: working/partial/planned)" -->
+
+- {{FEATURE_1}} — {{FEATURE_1_DESCRIPTION}} (status: planned)
+- {{FEATURE_2}} — {{FEATURE_2_DESCRIPTION}} (status: planned)
+
+---
+
+## API Endpoints
+
+<!-- Document all API routes. Keep this in sync with your actual code. -->
+<!-- If your project doesn't have an API, replace this section with relevant architecture info. -->
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| {{ENDPOINT_1}} | {{METHOD_1}} | {{PURPOSE_1}} |
+| {{ENDPOINT_2}} | {{METHOD_2}} | {{PURPOSE_2}} |
+
+---
+
+## Known Issues
+
+<!-- Track bugs, limitations, and technical debt here. Remove items when fixed. -->
+<!-- Format: "- [severity] Description — discovered YYYY-MM-DD" -->
+
+- No known issues yet. This section updates as bugs are discovered during development.
+
+---
+
+## Deployment Notes
+
+<!-- How is this project deployed? What environment variables are needed? -->
+<!-- Include server details, CI/CD setup, and any manual steps required. -->
+
+- **Environment**: {{DEPLOYMENT_ENVIRONMENT}}
+- **URL**: {{DEPLOYMENT_URL}}
+- **Required env vars**: See `.env.example`
+- **Deploy command**: `python workflows/deploy.py`
+
+---
+
+## Recent Changes
+
+<!-- This section is auto-updated by sync-knowledge.py. Do not edit manually. -->
+<!-- Each entry: "- YYYY-MM-DD: Brief description of what changed" -->
+
+- {{DATE_CREATED}}: Project initialized with Dev Autopilot workflow system
