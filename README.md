@@ -6,14 +6,38 @@ Dev Autopilot turns Claude Code from a coding assistant into a full project mana
 
 ## Quick Start
 
+### Mode 1: Fresh Project (start from scratch)
+
 ```bash
-# 1. Clone this repo
+# 1. Clone this repo anywhere (NOT inside an existing project)
 git clone https://github.com/vishaludemy37/dev-autopilot-templates.git
+cd dev-autopilot-templates
 
 # 2. Run the setup script
-cd dev-autopilot-templates
 python setup-new-project.py
+# Choose mode: 1, fill in your project details
+# → Creates a new project folder with everything set up
 ```
+
+### Mode 2: Retrofit Existing Project (add to your codebase)
+
+```bash
+# 1. Go to your existing project
+cd /path/to/your-project
+
+# 2. Download JUST the setup script (do NOT clone the repo here)
+curl -O https://raw.githubusercontent.com/vishaludemy37/dev-autopilot-templates/main/setup-new-project.py
+
+# 3. Run it
+python setup-new-project.py
+# Choose mode: 2, fill in your project details
+# → Downloads templates and workflow scripts from GitHub automatically
+
+# 4. Clean up the setup script (it's no longer needed)
+rm setup-new-project.py
+```
+
+> **Why not clone?** Cloning creates a nested `.git` folder inside your project, which causes conflicts with your own repo. Mode 2 downloads everything it needs directly from GitHub — no cloning required.
 
 The setup script will walk you through everything interactively.
 
@@ -44,21 +68,24 @@ Done! cd my-saas-app and start coding.
 
 ### Mode 2: Retrofit Existing Project
 
-Already have a codebase? The setup script will:
-- Add the `workflows/` directory with all scripts
-- Generate `CLAUDE.md` tailored to your project
-- Create a knowledge file for project context
-- Commit everything — zero disruption to your existing code
+Already have a codebase? Download `setup-new-project.py` into your project and run it — no cloning needed. It fetches all templates and scripts directly from GitHub.
+
+- Adds the `workflows/` directory with all scripts
+- Generates `CLAUDE.md` tailored to your project
+- Creates a knowledge file for project context
+- Commits everything — zero disruption to your existing code
 
 **Example:**
 ```
 $ cd /path/to/existing-project
-$ python /path/to/dev-autopilot-templates/setup-new-project.py
+$ curl -O https://raw.githubusercontent.com/vishaludemy37/dev-autopilot-templates/main/setup-new-project.py
+$ python setup-new-project.py
 > Choose mode: 2 (Retrofit existing project)
 > Project name: existing-app
 > ...
 
 Done! Your existing project now has Dev Autopilot.
+$ rm setup-new-project.py   # clean up
 ```
 
 ---
