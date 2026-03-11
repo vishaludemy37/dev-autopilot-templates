@@ -90,12 +90,64 @@ When the user describes a client requirement, feature request, or bug report usi
 - "Client emailed:...", "Client called about:...", "Client WhatsApp:..."
 - "Bug reported:...", "Client reported...", "Client feedback:..."
 
-Automatically run:
+### Step 1: Classify the requirement
+
+Before logging, determine if the requirement is **clear** or **vague**:
+
+**Clear requirements** — specific, actionable, single-task scope. Log immediately.
+Examples: "change the login button color to blue", "add email validation on signup form", "fix the 404 error on /products page", "add a loading spinner to the dashboard"
+
+**Vague/high-level requirements** — broad scope, missing details, could mean many things. Clarify first.
+Examples: "create an ecommerce website", "build a dashboard", "add user management", "client wants a mobile app", "redesign the homepage"
+
+### Step 2a: If CLEAR — log directly
+
+Run the requirements script immediately:
 ```
 python workflows/requirements.py --client "[detect client name from context or ask]" --channel "[detect channel: email/call/whatsapp/chat]" --requirement "[exact requirement text]"
 ```
 
-Do this without being asked. Then:
+### Step 2b: If VAGUE — ask clarifying questions first
+
+Ask targeted questions based on the requirement type. Examples:
+
+For a **website/page request**:
+- How many pages? What's the sitemap?
+- What sections do you need on the homepage?
+- What should a product/detail page include?
+- Any specific features? (search, filters, cart, auth)
+
+For a **feature request**:
+- What's the user flow? (step by step)
+- Where does this feature live in the app? (which page/section)
+- What data does it need? (inputs, outputs, API calls)
+- Any edge cases to handle?
+
+For a **dashboard/admin panel**:
+- What metrics/data should it show?
+- Who are the users? (admin, manager, viewer)
+- What actions can users take? (CRUD, export, approve)
+
+For a **redesign**:
+- Which specific pages/components?
+- What's wrong with the current design?
+- Any reference designs or inspiration?
+
+**Present questions as a numbered list.** After each question, offer:
+> "Or type 'auto' and I'll decide based on best practices for your stack ({{TECH_STACK}})"
+
+If the user says **"auto"** or **"you decide"** or **"claude decide"**:
+- Make reasonable decisions based on the project's tech stack, industry best practices, and the knowledge file
+- Present your decisions as a summary: "Here's what I'll go with: [list decisions]"
+- Ask: "Look good? (y/n/edit)"
+
+Once all details are gathered, combine them into a detailed requirement description and log it:
+```
+python workflows/requirements.py --client "[client]" --channel "[channel]" --requirement "[detailed requirement with all clarified details]"
+```
+
+### Step 3: After logging
+
 1. Confirm: REQ ID generated, number of tasks created
 2. Ask: "Generate FRD (Functional Requirement Document) for REQ-XXX? (y/n)"
    - If **y**: run `python workflows/generate-frd.py --req-id REQ-XXX` and follow the FRD Generation Protocol (includes approval step)
