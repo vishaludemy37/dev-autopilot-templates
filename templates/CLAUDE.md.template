@@ -165,8 +165,13 @@ Save outputs:
 - `workflows/frd/<REQ_ID>-FRD.md` — markdown version
 - Run `python workflows/generate-frd-docx.py --input workflows/frd/<REQ_ID>-FRD.md --output workflows/frd/<REQ_ID>-FRD.docx` to generate Word document
 - Update the requirement file to add `FRD: workflows/frd/<REQ_ID>-FRD.md` reference
-- Update requirement status to "approved"
-- Say: "FRD approved — say 'work on <REQ_ID>' to start development"
+- Set requirement status to "pending-approval"
+- Show the user a summary of the FRD (key functional requirements, scope, technical approach)
+- Ask: "Review the FRD above. Approve? (y/n/edit)"
+  - If **y**: update requirement status to "approved", then say: "FRD approved — say 'work on <REQ_ID>' to start development"
+  - If **n**: ask what needs to change, update the FRD, and ask for approval again
+  - If **edit**: open the FRD file for the user to edit, then ask for approval again
+- **NEVER auto-approve** — always wait for explicit user approval before marking as "approved"
 
 ## Closing Trigger
 
