@@ -86,7 +86,9 @@ After receiving this output, Claude Code should:
    ```
    Also update `<auto-memory-directory>/MEMORY.md` to include a link: `- [{{PROJECT_NAME}} Knowledge]({{PROJECT_NAME}}-knowledge.md)`
    This ensures project context is available in future conversations even without reading the knowledge file again.
-5. Summarize what was updated (both the knowledge file and the memory copy)
+5. **Tell the user** — always explicitly confirm both syncs:
+   - "Updated knowledge/{{PROJECT_NAME}}-project.md with: [list what changed]"
+   - "Synced to Claude memory — project context will persist in future conversations"
 
 ## Requirement Logging Rule
 
