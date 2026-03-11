@@ -67,7 +67,7 @@ When the user describes a client requirement (e.g. "Client emailed asking for X"
 
 ## Auto-Update Rule
 
-At the end of every conversation, automatically update `knowledge/{{PROJECT_NAME}}-project.md` with any new requirements, decisions, architecture changes, bugs discovered, or features discussed. Do this without being asked. Also sync the copy at the Claude memory directory.
+At the end of every conversation, automatically update `knowledge/{{PROJECT_NAME}}-project.md` with any new requirements, decisions, architecture changes, bugs discovered, or features discussed. Do this without being asked. Also sync the copy to Claude Code's auto-memory directory (see below).
 
 ### Knowledge Sync Protocol
 
@@ -80,8 +80,13 @@ After receiving this output, Claude Code should:
 1. Analyze the changed files and commits
 2. Compare against the current knowledge file
 3. Update `knowledge/{{PROJECT_NAME}}-project.md` directly — only add or update sections, never remove
-4. Copy the updated file to the Claude memory directory
-5. Summarize what was updated
+4. **Copy to Claude Code's persistent memory** — Claude Code has an auto-memory directory that persists across conversations. To find it, check the system prompt for the line starting with "You have a persistent auto memory directory at". Copy the updated knowledge file there:
+   ```
+   cp knowledge/{{PROJECT_NAME}}-project.md <auto-memory-directory>/{{PROJECT_NAME}}-knowledge.md
+   ```
+   Also update `<auto-memory-directory>/MEMORY.md` to include a link: `- [{{PROJECT_NAME}} Knowledge]({{PROJECT_NAME}}-knowledge.md)`
+   This ensures project context is available in future conversations even without reading the knowledge file again.
+5. Summarize what was updated (both the knowledge file and the memory copy)
 
 ## Requirement Logging Rule
 
