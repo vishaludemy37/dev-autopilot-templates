@@ -95,10 +95,12 @@ Automatically run:
 python workflows/requirements.py --client "[detect client name from context or ask]" --channel "[detect channel: email/call/whatsapp/chat]" --requirement "[exact requirement text]"
 ```
 
-Do this without being asked. Then confirm:
-- REQ ID generated
-- Number of tasks created
-- Say: "Type 'show requirements' to see all open work or 'work on REQ-XXX' to start"
+Do this without being asked. Then:
+1. Confirm: REQ ID generated, number of tasks created
+2. Ask: "Generate FRD (Functional Requirement Document) for REQ-XXX? (y/n)"
+   - If **y**: run `python workflows/generate-frd.py --req-id REQ-XXX` and follow the FRD Generation Protocol (includes approval step)
+   - If **n**: say "OK, skipping FRD. Type 'work on REQ-XXX' to start development"
+3. **NEVER start development automatically** — always wait for the user to say "work on REQ-XXX"
 
 ## Work Session Rule
 
