@@ -188,10 +188,11 @@ When you see `===DONE_PIPELINE_START===` in script output, immediately perform t
    - Output a short review summary
 3. **Generate test case** — if `workflows/frd/<REQ>-FRD.md` exists, read it and map test steps to FR numbers (e.g., "Acceptance Criteria Reference: FR-001"). Generate sections: Preconditions, Steps to Test (4-6 steps), Expected Result, Edge Cases (3-5 items), Acceptance Criteria Reference. If `KNOWN_ISSUES:` is present, add a "Known Issues to Verify" section
 4. **Save test case** to `workflows/testing/YYYY-MM-DD_testcases.md` (append with `---` separator if file exists)
-5. **Update Excel** — run:
+5. **Update Excel** — **MANDATORY, do not skip this step.** For EACH test case generated, run:
    ```
    python workflows/update-testcases-excel.py add --req-id <REQ> --task "<TASK>" --priority <PRIORITY> --preconditions "<parsed>" --steps "<parsed>" --expected "<parsed>" --edge-cases "<parsed>"
    ```
+   This creates/updates `workflows/testing/testcases.xlsx`. The script auto-installs `openpyxl` if missing. If the command fails, show the error to the user — do not silently skip it.
 6. **Update READY_FOR_TESTING.md** — append an entry with requirement, task, developer, completion time, test case path, files changed, and "Awaiting Test" status
 7. **Continue the workflow** — proceed to the next standup/work step (usually sync_knowledge)
 

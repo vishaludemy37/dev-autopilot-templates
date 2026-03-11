@@ -14,13 +14,22 @@ Usage:
 
 import argparse
 import os
+import subprocess
 import sys
 from datetime import date
 
-from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.datavalidation import DataValidation
+try:
+    from openpyxl import Workbook, load_workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    from openpyxl.worksheet.datavalidation import DataValidation
+except ImportError:
+    print("  Installing openpyxl...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl", "-q"])
+    from openpyxl import Workbook, load_workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    from openpyxl.worksheet.datavalidation import DataValidation
 
 EXCEL_PATH = os.path.join(os.path.dirname(__file__), "testing", "testcases.xlsx")
 
